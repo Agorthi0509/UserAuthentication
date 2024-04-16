@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.UserAuthentication</groupId>
 	<artifactId>User-Authentication</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<name>User-Authentication</name>
 	<description>Flow of User Authentication</description>
 	<properties>
