@@ -1,10 +1,14 @@
 package com.UserAuthentication.User.Authentication.service;
 
+import com.UserAuthentication.User.Authentication.DTO.SendEmailMessageDto;
 import com.UserAuthentication.User.Authentication.model.Token;
 import com.UserAuthentication.User.Authentication.model.User;
 import com.UserAuthentication.User.Authentication.repository.TokenRepository;
 import com.UserAuthentication.User.Authentication.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,11 @@ import java.util.UUID;
 public class UserService {
 
     @Autowired
+    private KafkaTemplate<String,String> kafkaTemplate;
+    @Autowired
+   private  ObjectMapper objectMapper;
+
+    @Autowired
    private UserRepository userRepository;
     @Autowired
    private  BCryptPasswordEncoder bCryptPasswordEncoder; //We dont have a class to autowire so creating in config
@@ -30,10 +39,22 @@ public class UserService {
         user.setEmail(email);
         user.setPassword(bCryptPasswordEncoder.encode(password));
         user.setUsername(name);
+        User savedUser= userRepository.save(user);
+
+        SendEmailMessageDto message = new SendEmailMessageDto();
+        message.setFrom("support@scaler.com");
+        message.setTo(savedUser.getEmail());
+        message.setSubject("Welcome to Scaler");
+        message.setBody("We are happy to have you!!!");
+
+        try {
+            kafkaTemplate.send("SendEmail",objectMapper.writeValueAsString(message));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
 
-
-      return userRepository.save(user);
+        return savedUser;
 
 
 
